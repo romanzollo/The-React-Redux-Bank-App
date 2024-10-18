@@ -1,5 +1,4 @@
-import { type } from '@testing-library/user-event/dist/type';
-import { createStore } from 'redux';
+import { combineReducers, createStore } from 'redux';
 
 const initialStateAccount = {
     balance: 0,
@@ -7,7 +6,13 @@ const initialStateAccount = {
     loanPurpose: '',
 };
 
-function reducer(state = initialStateAccount, action) {
+const initialStateCustomer = {
+    fullName: '',
+    nationalId: '',
+    createdAt: '',
+};
+
+function accountReducer(state = initialStateAccount, action) {
     switch (action.type) {
         case 'account/deposit':
             return { ...state, balance: state.balance + action.payload };
@@ -37,20 +42,30 @@ function reducer(state = initialStateAccount, action) {
     }
 }
 
-const store = createStore(reducer);
+function customerReducer(state = initialStateCustomer, action) {
+    switch (action.type) {
+        case 'customer/createCustomer':
+            return {
+                ...state,
+                fullName: action.payload.fullName,
+                nationalId: action.payload.nationalId,
+                createdAt: action.payload.createdAt,
+            };
 
-// store.dispatch({ type: 'account/deposit', payload: 500 });
-// store.dispatch({ type: 'account/withdraw', payload: 200 });
-// console.log(store.getState());
+        case 'customer/updateName':
+            return { ...state, fullName: action.payload };
 
-// store.dispatch({
-//     type: 'account/requestLoan',
-//     payload: { amount: 1000, purpose: 'Buy a new car' },
-// });
-// console.log(store.getState());
+        default:
+            return state;
+    }
+}
 
-// store.dispatch({ type: 'account/payLoan' });
-// console.log(store.getState());
+// объединение редьюсеров
+const rootReducer = combineReducers({
+    account: accountReducer,
+    customer: customerReducer,
+});
+const store = createStore(rootReducer);
 
 /* OLD */
 // const ACCOUNT_DEPOSIT = 'account/deposit';
@@ -89,4 +104,25 @@ store.dispatch(requestLoan(1000, 'Buy a new car'));
 console.log(store.getState());
 
 store.dispatch(payload());
+console.log(store.getState());
+
+function createCustomer(fullName, nationalId) {
+    return {
+        type: 'customer/createCustomer',
+        // new Date() является побочным эффектом, а функции редьюсера должны быть чистыми, но для примера можно оставить
+        //
+        // но в реальных проектах так делать не следует
+        payload: { fullName, nationalId, createdAt: new Date().toISOString() },
+    };
+}
+
+function updateName(fullName) {
+    return {
+        type: 'customer/updateName',
+        payload: fullName,
+    };
+}
+
+store.dispatch(createCustomer('Roman Zlagodukhin', '23542324'));
+store.dispatch(deposit(500));
 console.log(store.getState());
