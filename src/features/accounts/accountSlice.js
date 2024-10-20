@@ -2,13 +2,18 @@ const initialStateAccount = {
     balance: 0,
     loan: 0,
     loanPurpose: '',
+    isLoading: false, // индикатор загрузки
 };
 
 // функция-редьюсер
 export default function accountReducer(state = initialStateAccount, action) {
     switch (action.type) {
         case 'account/deposit':
-            return { ...state, balance: state.balance + action.payload };
+            return {
+                ...state,
+                balance: state.balance + action.payload,
+                isLoading: false, // выключаем индикатор загрузки
+            };
 
         case 'account/withdraw':
             return { ...state, balance: state.balance - action.payload };
@@ -29,6 +34,11 @@ export default function accountReducer(state = initialStateAccount, action) {
                 loanPurpose: '',
                 balance: state.balance - state.loan,
             };
+        case 'account/convertingCurrency':
+            return {
+                ...state,
+                isLoading: true,
+            };
 
         default:
             return state;
@@ -36,8 +46,26 @@ export default function accountReducer(state = initialStateAccount, action) {
 }
 
 // action creators
-export function deposit(amount) {
-    return { type: 'account/deposit', payload: amount };
+export function deposit(amount, currency) {
+    if (currency === 'USD') return { type: 'account/deposit', payload: amount };
+
+    // THUNK function (middleware)
+    return async function (dispatch, getState) {
+        // включаем индикатор загрузки
+        dispatch({ type: 'account/convertingCurrency' });
+
+        // API call
+        const res = await fetch(
+            `https://api.frankfurter.app/latest?amount=${amount}&from=${currency}&to=USD`
+        );
+
+        const data = await res.json();
+
+        // сконвертированное значение
+        const convertedAmount = data.rates.USD;
+
+        dispatch({ type: 'account/deposit', payload: convertedAmount });
+    };
 }
 
 export function withdraw(amount) {
