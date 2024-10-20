@@ -1,5 +1,6 @@
 import { applyMiddleware, combineReducers, createStore } from 'redux';
 import { thunk } from 'redux-thunk';
+import { composeWithDevTools } from '@redux-devtools/extension'; // OLD version
 
 import accountReducer from './features/accounts/accountSlice';
 import customerReducer from './features/customers/customerSlice';
@@ -11,6 +12,9 @@ const rootReducer = combineReducers({
 });
 
 // создание хранилища
-const store = createStore(rootReducer, applyMiddleware(thunk));
+const store = createStore(
+    rootReducer,
+    composeWithDevTools(applyMiddleware(thunk)) // OLD version
+);
 
 export default store;
