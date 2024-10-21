@@ -1,42 +1,41 @@
-const initialStateCustomer = {
+import { createSlice } from '@reduxjs/toolkit';
+
+const initialState = {
     fullName: '',
     nationalId: '',
     createdAt: '',
 };
 
-// функция-редьюсер
-export default function customerReducer(state = initialStateCustomer, action) {
-    switch (action.type) {
-        case 'customer/createCustomer':
-            return {
-                ...state,
-                fullName: action.payload.fullName,
-                nationalId: action.payload.nationalId,
-                createdAt: action.payload.createdAt,
-            };
+const customerSlice = createSlice({
+    name: 'customer',
+    initialState,
+    reducers: {
+        createCustomer: {
+            // подготавливаем action.payload к использованию в reducer
+            prepare(fullName, nationalId) {
+                return {
+                    payload: {
+                        fullName,
+                        nationalId,
+                        // new Date() является побочным эффектом, а функции редьюсера должны быть чистыми
+                        // поэтому функция  prepare идеальное место для использования побочных эффектов !!!
+                        createdAt: new Date().toISOString(),
+                    },
+                };
+            },
 
-        case 'customer/updateName':
-            return { ...state, fullName: action.payload };
+            reducer(state, action) {
+                state.fullName = action.payload.fullName;
+                state.nationalId = action.payload.nationalId;
+                state.createdAt = action.payload.createdAt;
+            },
+        },
+        updateName(state, action) {
+            state.fullName = action.payload;
+        },
+    },
+});
 
-        default:
-            return state;
-    }
-}
+export const { createCustomer, updateName } = customerSlice.actions;
 
-// action creators
-export function createCustomer(fullName, nationalId) {
-    return {
-        type: 'customer/createCustomer',
-        // new Date() является побочным эффектом, а функции редьюсера должны быть чистыми, но для примера можно оставить
-        //
-        // но в реальных проектах так делать не следует
-        payload: { fullName, nationalId, createdAt: new Date().toISOString() },
-    };
-}
-
-export function updateName(fullName) {
-    return {
-        type: 'customer/updateName',
-        payload: fullName,
-    };
-}
+export default customerSlice.reducer;
