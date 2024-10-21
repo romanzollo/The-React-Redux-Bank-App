@@ -49,7 +49,31 @@ const accountSlice = createSlice({
     },
 });
 
-export const { deposit, withdraw, requestLoan, payLoan } = accountSlice.actions;
+export const { withdraw, requestLoan, payLoan } = accountSlice.actions;
+
+// вариант с использованием асинхронной функции без Redux Thunk (RTK)
+// более простой вариант
+export function deposit(amount, currency) {
+    if (currency === 'USD') return { type: 'account/deposit', payload: amount };
+
+    // THUNK function (middleware)
+    return async function (dispatch, getState) {
+        // включаем индикатор загрузки
+        dispatch({ type: 'account/convertingCurrency' });
+
+        // API call
+        const res = await fetch(
+            `https://api.frankfurter.app/latest?amount=${amount}&from=${currency}&to=USD`
+        );
+
+        const data = await res.json();
+
+        // сконвертированное значение
+        const convertedAmount = data.rates.USD;
+
+        dispatch({ type: 'account/deposit', payload: convertedAmount });
+    };
+}
 
 export default accountSlice.reducer;
 
