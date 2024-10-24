@@ -20,3 +20,5 @@ A simple fake-application for banking built with React and Redux. It allows to c
 -   Redux Toolkit
 -   Redux Devtools
 -   Frankfurter API
+
+[Link to project](https://the-react-redux-bank-75xsac5qs-romanzollos-projects.vercel.app/)
